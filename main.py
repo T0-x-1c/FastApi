@@ -40,24 +40,21 @@ async def get_all_books(db: Session = Depends(get_db)):
     return crud.get_all_book(db)
 
 @app.post("/add_book")
-async def add_new_book(book:Book):
+async def add_new_book(book:schemas.BookCreate, db: Session = Depends(get_db)):
     """
     Додає нову книгу
     """
-    if book.author not in all_books:
-        all_books[book.author] = [[book.title, book.pages]]
-    else:
-        all_books[book.author].append([book.title, book.pages])
-
-    return {"message": "Книга успішно створена"}
+    new_book = crud.create_book(book, db)
+    return {"message": "Книга успішно створена", "book": new_book}
 
 @app.get("/author/{author}")
-async def get_author_book(author:str):
+async def get_author_book(author:str, db: Session = Depends(get_db)):
     """
     Знаходить всі книги автора
     """
-    if author in all_books:
-        return all_books[author]
+    books = crud.get_book_by_author(author, db)
+    if books:
+        return books
     else:
         return {"message": "Такого автора немає"}
     
@@ -77,15 +74,12 @@ async def update_book_title(author: str,
     return {"message":"Книги не знайденно"}
     
 @app.delete('/{author}/{book_title}')
-async def delete_book(author:str, book_title:str):
+async def delete_book(author:str, book_title:str, db: Session = Depends(get_db)):
     """
     Видаляє книгу
     """
-    if author in all_books:
-        for book in all_books [author]:
-            if book[0] == book_title:
-                all_books [author].remove(book)
-                return {"message":"Книга видалина"}
+    if crud.delete_book(author, book_title, db):        
+        return {"message":"Книга видалина"}
             
     return {"message":"Книги не знайденно"}
 
