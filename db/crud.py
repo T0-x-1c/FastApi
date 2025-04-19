@@ -1,6 +1,12 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from .models import Book, Author
+from .models import Book, Author, User
+
+def check_user(login:str, password:str, db: Session):
+    user = db.query(User).filter(User.login == login, User.password==password).first()
+
+    return user
+
 
 def get_all_book(db: Session):
     books = db.query(Book).all()
